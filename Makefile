@@ -1,4 +1,4 @@
-SDKVERSION=7.1
+SDKVERSION=8.2
 GO_EASY_ON_ME=1
 
 include theos/makefiles/common.mk
@@ -18,4 +18,4 @@ include $(FW_MAKEDIR)/aggregate.mk
 include $(THEOS_MAKE_PATH)/tool.mk
 
 after-install::
-        install.exec "killall -9 SpringBoard"
+	install.exec "killall -9 SpringBoard"

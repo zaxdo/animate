@@ -3,7 +3,7 @@
  * Copyright (C) 2011 Chronic-Dev Team
  * Copyright (C) 2011 Nicolas Haunold
  * Copyright (C) 2011 Justin Williams
- * Copyright (C) 2011 Alex Mault 
+ * Copyright (C) 2011 Alex Mault
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,24 +23,24 @@
  * pref bundle. We need to dynamicly decide what content is displayed based off of a directory listing.
  *
  */
-
+#import <ImageIO/ImageIO.h>
 #import <Preferences/PSViewController.h>
 #import "animationPreviewViewController.h"
 
 @interface BootLogoListController: PSViewController <UITableViewDelegate, UITableViewDataSource> {
     //an array of folders for possible boot logos.
     NSMutableArray *bootLogos;
-    
+
     //the settings Dictionary
     NSMutableDictionary *plistDictionary;
-    
+
     //The identifier of the currently selected logo.
     NSString *currentlySelected;
-    
+
      //do I really need to explain this one?
     UITableView *_logoTable;
     UIBarButtonItem *previewButton;
-    
+
 }
 
 + (void) load;
@@ -50,9 +50,9 @@
 - (id) navigationTitle;
 - (void) themesChanged;
 
-- (int) numberOfSectionsInTableView:(UITableView *)tableView;
-- (id) tableView:(UITableView *)tableView titleForHeaderInSection:(int)section;
-- (int) tableView:(UITableView *)tableView numberOfRowsInSection:(int)section;
+- (NSInteger) numberOfSectionsInTableView:(UITableView *)tableView;
+- (id) tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section;
+- (NSInteger) tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section;
 - (id) tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath;
 - (void) tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath;
 - (void) tableView:(UITableView *)tableView moveRowAtIndexPath:(NSIndexPath *)fromIndexPath toIndexPath:(NSIndexPath *)toIndexPath;
@@ -64,7 +64,7 @@
 
 @implementation BootLogoListController
 
-//Our title... 
+//Our title...
 - (NSString*) title {
     return @"Boot Animation";
 }
@@ -81,7 +81,7 @@
     [pool release];
 }
 
-//The bulk of the initiation done here. 
+//The bulk of the initiation done here.
 - (id) initForContentSize:(CGSize)size {
 
     if ((self = [super init]) != nil) {
@@ -105,10 +105,10 @@
         [_logoTable setDelegate:self];
         if ([self respondsToSelector:@selector(setView:)])
             [self setView:_logoTable];
-        
 
 
-        
+
+
 
     }
     return self;
@@ -119,13 +119,31 @@
     [super pushController:preview];
     [preview release];
 }
+-(void)convertGIFsToPNGs {
+  NSError *err = nil;
+  NSArray *contents = [[[NSFileManager defaultManager] contentsOfDirectoryAtPath:@"/Library/BootLogos/" error:&err] pathsMatchingExtensions:@[@"gif"]];
+  for (NSString *item in contents) {
+    NSString *path = [@"/Library/BootLogos/" stringByAppendingPathComponent:item];
+    NSData *imageData = [NSData dataWithContentsOfFile:path];
 
+    CGImageSourceRef imgsrc = CGImageSourceCreateWithData((__bridge CFDataRef)imageData, NULL);
+    size_t frames = CGImageSourceGetCount(imgsrc);
+    NSString *dirname = [[path lastPathComponent] stringByDeletingPathExtension];
+    NSString *base = [[path stringByDeletingLastPathComponent] stringByAppendingPathComponent:dirname];
+    [[NSFileManager defaultManager] createDirectoryAtPath:base withIntermediateDirectories:NO attributes:nil error:nil];
+    for (int i = 0; i < frames; i++) {
+      UIImage *img = [UIImage imageWithCGImage:CGImageSourceCreateImageAtIndex(imgsrc, i, NULL)];
+      [UIImagePNGRepresentation(img) writeToFile:[base stringByAppendingPathComponent:[NSString stringWithFormat:@"%i.png", i]] atomically:YES];
+    }
+  }
+}
 -(void)reloadPossibleLogos{
+  [self convertGIFsToPNGs];
     [bootLogos removeAllObjects];
     id file = nil;
     NSDirectoryEnumerator *enumerator = [[NSFileManager defaultManager]
                                          enumeratorAtPath:@"/Library/BootLogos/"];
-    
+
     while ((file = [enumerator nextObject]))
     {
         BOOL isDirectory=NO;
@@ -136,7 +154,7 @@
         if (isDirectory && ![file isEqualToString:@"default"] && ![file isEqualToString:@"apple"]) {
             [bootLogos addObject:file];
         }
-        
+
     }
 
 }
@@ -147,7 +165,7 @@
 [_logoTable reloadData];
 }
 
-//Headers are always a nice touch. 
+//Headers are always a nice touch.
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section{
     if(section == 0)
         return @"Built in";
@@ -158,7 +176,7 @@
 - (void)viewWillAppear:(BOOL)animated{
     [self reloadPossibleLogos];
     if([currentlySelected isEqualToString:@"default"] || [currentlySelected isEqualToString:@"apple"]){
-        
+
         self.navigationItem.rightBarButtonItem = nil;
     }else{
         self.navigationItem.rightBarButtonItem = previewButton;
@@ -175,16 +193,16 @@
 #pragma mark - Table view data source
 
 /*
- *All of this should be very self explanatory.. 
+ *All of this should be very self explanatory..
  */
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
-{    
+{
     if([bootLogos count] > 0)
         return 2;
     else
         return 1;
-    
+
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
@@ -198,7 +216,7 @@
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     static NSString *CellIdentifier = @"Cell";
-    
+
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
     if (cell == nil) {
         cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier] autorelease];
@@ -219,7 +237,7 @@
         if([cell.textLabel.text isEqualToString:currentlySelected])
             cell.accessoryType = UITableViewCellAccessoryCheckmark;
     }
-    
+
     return cell;
 }
 
@@ -239,10 +257,10 @@
 {
     if(indexPath.section == 0){
         if(indexPath.row == 0){
-	    [currentlySelected release];
+            [currentlySelected release];
             currentlySelected = [[[NSString alloc] initWithString:@"apple"] retain];
         }else if(indexPath.row == 1){
-		[currentlySelected release];
+                [currentlySelected release];
             currentlySelected = [[[NSString alloc] initWithString:@"default"] retain];
         }
         self.navigationItem.rightBarButtonItem = nil;
@@ -250,20 +268,19 @@
         currentlySelected = [bootLogos objectAtIndex:indexPath.row];
         self.navigationItem.rightBarButtonItem = previewButton;
     }
-    
+
     NSError *error = nil;
     [currentlySelected writeToFile:@"/Library/BootLogos/org.chronic-dev.animate.plist" atomically:true encoding:NSUTF8StringEncoding error:&error];
-    
-    
-    
+
+
+
     if(error){
         UIAlertView *errorAlert = [[[UIAlertView alloc] initWithTitle:@"Error" message:@"we were unable to save your changes. \n\n sorry.." delegate:nil cancelButtonTitle:@"darn!" otherButtonTitles:nil] autorelease];
         [errorAlert show];
     }
     [_logoTable reloadData];
-    
+
 }
 
 
 @end
-
