@@ -77,8 +77,7 @@
 
 + (void) load {
     //every good party needs a pool!
-    NSAutoreleasePool *pool([[NSAutoreleasePool alloc] init]);
-    [pool release];
+    @autoreleasepool {}
 }
 
 //The bulk of the initiation done here.
@@ -92,11 +91,11 @@
             //NSDictionary *plistDictionary = [[NSDictionary dictionaryWithContentsOfFile:@"/Library/BootLogos/org.chronic-dev.animate.plist"] retain];
             //not using a dict atm... seems to be saving problems.
             NSError *error;
-            currentlySelected = [[[NSString alloc] initWithContentsOfFile:@"/Library/BootLogos/org.chronic-dev.animate.plist" encoding:NSUTF8StringEncoding error:&error] retain];
+            currentlySelected = [[NSString alloc] initWithContentsOfFile:@"/Library/BootLogos/org.chronic-dev.animate.plist" encoding:NSUTF8StringEncoding error:&error];
         }
 
         if(currentlySelected == nil)
-            currentlySelected = [[[NSString alloc] initWithString:@"default"] retain];
+            currentlySelected = @"default";
 
         [self reloadPossibleLogos];
 
@@ -105,11 +104,6 @@
         [_logoTable setDelegate:self];
         if ([self respondsToSelector:@selector(setView:)])
             [self setView:_logoTable];
-
-
-
-
-
     }
     return self;
 }
@@ -117,28 +111,28 @@
 -(void)playPreview{
     animationPreviewViewController *preview = [[animationPreviewViewController alloc] initWithAnimationName:currentlySelected];
     [super pushController:preview];
-    [preview release];
 }
 -(void)convertGIFsToPNGs {
-  NSError *err = nil;
-  NSArray *contents = [[[NSFileManager defaultManager] contentsOfDirectoryAtPath:@"/Library/BootLogos/" error:&err] pathsMatchingExtensions:@[@"gif"]];
-  for (NSString *item in contents) {
-    NSString *path = [@"/Library/BootLogos/" stringByAppendingPathComponent:item];
-    NSData *imageData = [NSData dataWithContentsOfFile:path];
+    NSError *err = nil;
+    NSArray *contents = [[[NSFileManager defaultManager] contentsOfDirectoryAtPath:@"/Library/BootLogos/" error:&err] pathsMatchingExtensions:@[@"gif"]];
+    for (NSString *item in contents) {
+        NSString *path = [@"/Library/BootLogos/" stringByAppendingPathComponent:item];
+        NSData *imageData = [NSData dataWithContentsOfFile:path];
 
-    CGImageSourceRef imgsrc = CGImageSourceCreateWithData((__bridge CFDataRef)imageData, NULL);
-    size_t frames = CGImageSourceGetCount(imgsrc);
-    NSString *dirname = [[path lastPathComponent] stringByDeletingPathExtension];
-    NSString *base = [[path stringByDeletingLastPathComponent] stringByAppendingPathComponent:dirname];
-    [[NSFileManager defaultManager] createDirectoryAtPath:base withIntermediateDirectories:NO attributes:nil error:nil];
-    for (int i = 0; i < frames; i++) {
-      UIImage *img = [UIImage imageWithCGImage:CGImageSourceCreateImageAtIndex(imgsrc, i, NULL)];
-      [UIImagePNGRepresentation(img) writeToFile:[base stringByAppendingPathComponent:[NSString stringWithFormat:@"%i.png", i]] atomically:YES];
+        CGImageSourceRef imgsrc = CGImageSourceCreateWithData((__bridge CFDataRef)imageData, NULL);
+        size_t frames = CGImageSourceGetCount(imgsrc);
+        NSString *dirname = [[path lastPathComponent] stringByDeletingPathExtension];
+        NSString *base = [[path stringByDeletingLastPathComponent] stringByAppendingPathComponent:dirname];
+        [[NSFileManager defaultManager] createDirectoryAtPath:base withIntermediateDirectories:NO attributes:nil error:nil];
+        for (int i = 0; i < frames; i++) {
+            UIImage *img = [UIImage imageWithCGImage:CGImageSourceCreateImageAtIndex(imgsrc, i, NULL)];
+            [UIImagePNGRepresentation(img) writeToFile:[base stringByAppendingPathComponent:[NSString stringWithFormat:@"%i.png", i]] atomically:YES];
+        }
+        [[NSFileManager defaultManager] removeItemAtPath: path error:nil];
     }
-  }
 }
 -(void)reloadPossibleLogos{
-  [self convertGIFsToPNGs];
+    [self convertGIFsToPNGs];
     [bootLogos removeAllObjects];
     id file = nil;
     NSDirectoryEnumerator *enumerator = [[NSFileManager defaultManager]
@@ -219,7 +213,7 @@
 
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
     if (cell == nil) {
-        cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier] autorelease];
+        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier];
     }
     cell.accessoryType = UITableViewCellAccessoryNone;
     if(indexPath.section == 0){
@@ -257,11 +251,9 @@
 {
     if(indexPath.section == 0){
         if(indexPath.row == 0){
-            [currentlySelected release];
-            currentlySelected = [[[NSString alloc] initWithString:@"apple"] retain];
+            currentlySelected = @"apple";
         }else if(indexPath.row == 1){
-                [currentlySelected release];
-            currentlySelected = [[[NSString alloc] initWithString:@"default"] retain];
+            currentlySelected = @"default";
         }
         self.navigationItem.rightBarButtonItem = nil;
     }else{
@@ -275,7 +267,7 @@
 
 
     if(error){
-        UIAlertView *errorAlert = [[[UIAlertView alloc] initWithTitle:@"Error" message:@"we were unable to save your changes. \n\n sorry.." delegate:nil cancelButtonTitle:@"darn!" otherButtonTitles:nil] autorelease];
+        UIAlertView *errorAlert = [[UIAlertView alloc] initWithTitle:@"Error" message:@"we were unable to save your changes. \n\n sorry.." delegate:nil cancelButtonTitle:@"darn!" otherButtonTitles:nil];
         [errorAlert show];
     }
     [_logoTable reloadData];

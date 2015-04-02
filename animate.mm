@@ -35,23 +35,23 @@
 
 size_t screenWidth, screenHeight;
 pid_t getProcessId(const char *csProcessName){
-	struct kinfo_proc *sProcesses = NULL, *sNewProcesses;
-	pid_t  iCurrentPid;
-	int    aiNames[4];
-	size_t iNamesLength;
-	int    i, iRetCode, iNumProcs;
-	size_t iSize;
+        struct kinfo_proc *sProcesses = NULL, *sNewProcesses;
+        pid_t  iCurrentPid;
+        int    aiNames[4];
+        size_t iNamesLength;
+        int    i, iRetCode, iNumProcs;
+        size_t iSize;
 
-	iSize = 0;
-	aiNames[0] = CTL_KERN;
-	aiNames[1] = KERN_PROC;
-	aiNames[2] = KERN_PROC_ALL;
-	aiNames[3] = 0;
-	iNamesLength = 3;
+        iSize = 0;
+        aiNames[0] = CTL_KERN;
+        aiNames[1] = KERN_PROC;
+        aiNames[2] = KERN_PROC_ALL;
+        aiNames[3] = 0;
+        iNamesLength = 3;
 
-	iRetCode = sysctl(aiNames, iNamesLength, NULL, &iSize, NULL, 0);
+        iRetCode = sysctl(aiNames, iNamesLength, NULL, &iSize, NULL, 0);
 
-	do {
+        do {
                 iSize += iSize / 10;
                 sNewProcesses = (kinfo_proc *)realloc(sProcesses, iSize);
 
@@ -61,9 +61,9 @@ pid_t getProcessId(const char *csProcessName){
                 }
                 sProcesses = sNewProcesses;
                 iRetCode = sysctl(aiNames, iNamesLength, sProcesses, &iSize, NULL, 0);
-	} while (iRetCode == -1 && errno == ENOMEM);
+        } while (iRetCode == -1 && errno == ENOMEM);
 
-	iNumProcs = iSize / sizeof(struct kinfo_proc);
+        iNumProcs = iSize / sizeof(struct kinfo_proc);
 
         for (i = 0; i < iNumProcs; i++) {
                 iCurrentPid = sProcesses[i].kp_proc.p_pid;
@@ -78,62 +78,62 @@ pid_t getProcessId(const char *csProcessName){
 }
 
 CGContextRef fb_open() {
-io_connect_t conn = NULL;
-	size_t bytesPerRow;
-	void *surfaceBuffer;
-	void *frameBuffer;
-	CGContextRef context = NULL;
-	CGColorSpaceRef colorSpace;
+        io_connect_t conn = NULL;
+        size_t bytesPerRow;
+        void *surfaceBuffer;
+        void *frameBuffer;
+        CGContextRef context = NULL;
+        CGColorSpaceRef colorSpace;
 
-	void *mfb_lib = dlopen("/System/Library/PrivateFrameworks/IOMobileFramebuffer.framework/IOMobileFramebuffer", 2);
-	void *cs_lib = dlopen("/System/Library/PrivateFrameworks/IOSurface.framework/IOSurface", 2);
+        void *mfb_lib = dlopen("/System/Library/PrivateFrameworks/IOMobileFramebuffer.framework/IOMobileFramebuffer", 2);
+        void *cs_lib = dlopen("/System/Library/PrivateFrameworks/IOSurface.framework/IOSurface", 2);
 
-	int (*mfb_open)(io_service_t, task_port_t, uint32_t, io_connect_t*);
-	int (*mfb_layr)(io_service_t, int, void *);
-	int (*cs_lock)(void *, uint32_t, void*);
-	int (*cs_unlock)(void *, uint32_t, void*);
-	size_t (*cs_height)(void *);
-	size_t (*cs_width)(void *);
-	size_t (*cs_bytes)(void *);
-	void *(*cs_addr)(void *);
+        int (*mfb_open)(io_service_t, task_port_t, uint32_t, io_connect_t*);
+        int (*mfb_layr)(io_service_t, int, void *);
+        int (*cs_lock)(void *, uint32_t, void*);
+        int (*cs_unlock)(void *, uint32_t, void*);
+        size_t (*cs_height)(void *);
+        size_t (*cs_width)(void *);
+        size_t (*cs_bytes)(void *);
+        void *(*cs_addr)(void *);
 
-	*(void **)(&mfb_open) = dlsym(mfb_lib, "IOMobileFramebufferOpen");
-	*(void **)(&mfb_layr) = dlsym(mfb_lib, "IOMobileFramebufferGetLayerDefaultSurface");
-	*(void **)(&cs_lock) = dlsym(cs_lib, "IOSurfaceLock");
-	*(void **)(&cs_unlock) = dlsym(cs_lib, "IOSurfaceUnlock");
-	*(void **)(&cs_height) = dlsym(cs_lib, "IOSurfaceGetHeight");
-	*(void **)(&cs_width) = dlsym(cs_lib, "IOSurfaceGetWidth");
-	*(void **)(&cs_bytes) = dlsym(cs_lib, "IOSurfaceGetBytesPerRow");
-	*(void **)(&cs_addr) = dlsym(cs_lib, "IOSurfaceGetBaseAddress");
-	io_service_t fb_service = IOServiceGetMatchingService(kIOMasterPortDefault, IOServiceMatching("AppleCLCD"));
-if (!fb_service) {
-		fb_service = IOServiceGetMatchingService(kIOMasterPortDefault, IOServiceMatching("AppleM2CLCD"));
-		if (!fb_service) {
-			NSLog(@"Couldn't find framebuffer.\n");
-			return NULL;
-		}
-	}
-	(*mfb_open)(fb_service, mach_task_self(), 0, &conn);
-	(*mfb_layr)(conn, 0, &surfaceBuffer);
+        *(void **)(&mfb_open) = dlsym(mfb_lib, "IOMobileFramebufferOpen");
+        *(void **)(&mfb_layr) = dlsym(mfb_lib, "IOMobileFramebufferGetLayerDefaultSurface");
+        *(void **)(&cs_lock) = dlsym(cs_lib, "IOSurfaceLock");
+        *(void **)(&cs_unlock) = dlsym(cs_lib, "IOSurfaceUnlock");
+        *(void **)(&cs_height) = dlsym(cs_lib, "IOSurfaceGetHeight");
+        *(void **)(&cs_width) = dlsym(cs_lib, "IOSurfaceGetWidth");
+        *(void **)(&cs_bytes) = dlsym(cs_lib, "IOSurfaceGetBytesPerRow");
+        *(void **)(&cs_addr) = dlsym(cs_lib, "IOSurfaceGetBaseAddress");
+        io_service_t fb_service = IOServiceGetMatchingService(kIOMasterPortDefault, IOServiceMatching("AppleCLCD"));
+        if (!fb_service) {
+                fb_service = IOServiceGetMatchingService(kIOMasterPortDefault, IOServiceMatching("AppleM2CLCD"));
+                if (!fb_service) {
+                        NSLog(@"Couldn't find framebuffer.\n");
+                        return NULL;
+                }
+        }
+        (*mfb_open)(fb_service, mach_task_self(), 0, &conn);
+        (*mfb_layr)(conn, 0, &surfaceBuffer);
 
-	screenHeight = (*cs_height)(surfaceBuffer);
-	screenWidth = (*cs_width)(surfaceBuffer);
-	bytesPerRow = (*cs_bytes)(surfaceBuffer);
-	(*cs_lock)(surfaceBuffer, 3, NULL);
-	frameBuffer = (*cs_addr)(surfaceBuffer);
-	(*cs_unlock)(surfaceBuffer, 3, NULL);
+        screenHeight = (*cs_height)(surfaceBuffer);
+        screenWidth = (*cs_width)(surfaceBuffer);
+        bytesPerRow = (*cs_bytes)(surfaceBuffer);
+        (*cs_lock)(surfaceBuffer, 3, NULL);
+        frameBuffer = (*cs_addr)(surfaceBuffer);
+        (*cs_unlock)(surfaceBuffer, 3, NULL);
 
-	// create bitmap context
-	colorSpace = CGColorSpaceCreateDeviceRGB();
-	context = CGBitmapContextCreate(frameBuffer, screenWidth, screenHeight, 8, bytesPerRow, colorSpace, kCGImageAlphaPremultipliedFirst | kCGBitmapByteOrder32Little);
-	if(context == NULL) {
-		printf("Couldn't create screen context!\n");
-		return NULL;
-	}
+        // create bitmap context
+        colorSpace = CGColorSpaceCreateDeviceRGB();
+        context = CGBitmapContextCreate(frameBuffer, screenWidth, screenHeight, 8, bytesPerRow, colorSpace, kCGImageAlphaPremultipliedFirst | kCGBitmapByteOrder32Little);
+        if(context == NULL) {
+                printf("Couldn't create screen context!\n");
+                return NULL;
+        }
 
-	CGColorSpaceRelease(colorSpace);
+        CGColorSpaceRelease(colorSpace);
 
-	return context;
+        return context;
 }
 
 NSInteger firstNumSort(id str1, id str2, void *context) {
@@ -149,78 +149,76 @@ NSInteger firstNumSort(id str1, id str2, void *context) {
 }
 
 int main(int argc, char **argv, char **envp) {
-	NSAutoreleasePool *p = [[NSAutoreleasePool alloc] init];
-	NSMutableArray *arr = [[NSMutableArray alloc] init];
-	NSString *value = nil;
-	if ([[NSFileManager defaultManager] fileExistsAtPath:@"/Library/BootLogos/org.chronic-dev.animate.plist"]) {
-		//NSDictionary *plistDictionary = [[NSDictionary dictionaryWithContentsOfFile:@"/Library/BootLogos/org.chronic-dev.animate.plist"] retain];
-        //not using a dict atm... seems to be saving problems.
-        NSError *error;
-		value = [NSString stringWithContentsOfFile:@"/Library/BootLogos/org.chronic-dev.animate.plist" encoding:NSUTF8StringEncoding error:&error];
-	}
-	if ([value isEqualToString:@"apple"] || value == nil || (![value isEqualToString:@"default"] && ![[NSFileManager defaultManager] fileExistsAtPath:[NSString stringWithFormat:@"/Library/BootLogos/%@/0.png", value]])) {
-		return 0; //Exit and display nothing
-	} else if ([value isEqualToString:@"default"]) {
-		anim_sequence *sp = seq;
-		while (sp->data != NULL) {
-			CGDataProviderRef dpr = CGDataProviderCreateWithData(NULL, sp->data, sp->size, NULL);
-			CGImageRef img = CGImageCreateWithPNGDataProvider(dpr, NULL, true, kCGRenderingIntentDefault);
-			[arr addObject:(id)img];
-			CGDataProviderRelease(dpr);
-			sp++;
-		}
-	} else { //Preload other iamges
-		NSArray *dirContents = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:[NSString stringWithFormat:@"/Library/BootLogos/%@/", value] error:nil];
-		NSArray *onlyPNGs = [dirContents filteredArrayUsingPredicate:[NSPredicate predicateWithFormat:@"self ENDSWITH '.png'"]];
-		onlyPNGs = [onlyPNGs sortedArrayUsingFunction:firstNumSort context:NULL];
-		unsigned int j = 0;
-		for (j = 0; j < [onlyPNGs count]; j++) {
-			CGDataProviderRef dpr = CGDataProviderCreateWithFilename([[NSString stringWithFormat:@"/Library/BootLogos/%@/%@", value, [onlyPNGs objectAtIndex:j]] UTF8String]);
-			CGImageRef img = CGImageCreateWithPNGDataProvider(dpr, NULL, true, kCGRenderingIntentDefault);
-            
-			[arr addObject:(id)img];
-			CGDataProviderRelease(dpr);
-		}
-	}
- 	CGContextRef c = NULL;
-	int j = 0;
-	while (c == NULL && j < 50) {
-		c = fb_open();
-		j++;
-	}
+        @autoreleasepool {
+                NSMutableArray *arr = [[NSMutableArray alloc] init];
+                NSString *value = nil;
+                if ([[NSFileManager defaultManager] fileExistsAtPath:@"/Library/BootLogos/org.chronic-dev.animate.plist"]) {
+                        //NSDictionary *plistDictionary = [[NSDictionary dictionaryWithContentsOfFile:@"/Library/BootLogos/org.chronic-dev.animate.plist"] retain];
+                        //not using a dict atm... seems to be saving problems.
+                        NSError *error;
+                        value = [NSString stringWithContentsOfFile:@"/Library/BootLogos/org.chronic-dev.animate.plist" encoding:NSUTF8StringEncoding error:&error];
+                }
+                if ([value isEqualToString:@"apple"] || value == nil || (![value isEqualToString:@"default"] && ![[NSFileManager defaultManager] fileExistsAtPath:[NSString stringWithFormat:@"/Library/BootLogos/%@/0.png", value]])) {
+                        return 0; //Exit and display nothing
+                } else if ([value isEqualToString:@"default"]) {
+                        anim_sequence *sp = seq;
+                        while (sp->data != NULL) {
+                                CGDataProviderRef dpr = CGDataProviderCreateWithData(NULL, sp->data, sp->size, NULL);
+                                CGImageRef img = CGImageCreateWithPNGDataProvider(dpr, NULL, true, kCGRenderingIntentDefault);
+                                [arr addObject:CFBridgingRelease(img)];
+                                CGDataProviderRelease(dpr);
+                                sp++;
+                        }
+                } else { //Preload other iamges
+                        NSArray *dirContents = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:[NSString stringWithFormat:@"/Library/BootLogos/%@/", value] error:nil];
+                        NSArray *onlyPNGs = [dirContents filteredArrayUsingPredicate:[NSPredicate predicateWithFormat:@"self ENDSWITH '.png'"]];
+                        onlyPNGs = [onlyPNGs sortedArrayUsingFunction:firstNumSort context:NULL];
+                        unsigned int j = 0;
+                        for (j = 0; j < [onlyPNGs count]; j++) {
+                                CGDataProviderRef dpr = CGDataProviderCreateWithFilename([[NSString stringWithFormat:@"/Library/BootLogos/%@/%@", value, [onlyPNGs objectAtIndex:j]] UTF8String]);
+                                CGImageRef img = CGImageCreateWithPNGDataProvider(dpr, NULL, true, kCGRenderingIntentDefault);
 
-	if (c == NULL)
-		return -1;
+                                [arr addObject:CFBridgingRelease(img)];
+                                CGDataProviderRelease(dpr);
+                        }
+                }
+                CGContextRef c = NULL;
+                int j = 0;
+                while (c == NULL && j < 50) {
+                        c = fb_open();
+                        j++;
+                }
 
-	if (argc == 1) {
-		CGContextSetInterpolationQuality(c, kCGInterpolationLow);
-		unsigned int i;
-		for (i = 0; i < [arr count]; i++) {
-			CGImageRef bootimg = (CGImageRef)[arr objectAtIndex:i];
-			CGContextDrawImage(c, CGRectMake(0, 0, screenWidth, screenHeight), bootimg);
-		}
+                if (c == NULL)
+                        return -1;
 
-		if (vfork() == 0) {
-			char *args[] = { "-", "-", NULL };
-			execve(argv[0], args, envp);
-		}
+                if (argc == 1) {
+                        CGContextSetInterpolationQuality(c, kCGInterpolationLow);
+                        unsigned int i;
+                        for (i = 0; i < [arr count]; i++) {
+                                CGImageRef bootimg = (__bridge CGImageRef)[arr objectAtIndex:i];
+                                CGContextDrawImage(c, CGRectMake(0, 0, screenWidth, screenHeight), bootimg);
+                        }
 
-		CGImageRef bootimg = (CGImageRef)[arr objectAtIndex:([arr count] - 1)];
-		for (i = 0; i < 25; i++) {
-			CGContextDrawImage(c, CGRectMake(0, 0, screenWidth, screenHeight), bootimg);
-		}	
-	} else {
-		//Loop last frame
-		unsigned int i = [arr count] - 1;
-		while (getProcessId("SpringBoard") < 0) {
-			CGImageRef bootimg = (CGImageRef)[arr objectAtIndex:i];
-			CGContextDrawImage(c, CGRectMake(0, 0, screenWidth, screenHeight), bootimg);
-		} //Springboard will kill us eventually...
-	}
+                        if (vfork() == 0) {
+                                char *args[] = { "-", "-", NULL };
+                                execve(argv[0], args, envp);
+                        }
 
-	[arr release];
-	[p drain];
-	return 0;
+                        CGImageRef bootimg = (__bridge CGImageRef)[arr objectAtIndex:([arr count] - 1)];
+                        for (i = 0; i < 25; i++) {
+                                CGContextDrawImage(c, CGRectMake(0, 0, screenWidth, screenHeight), bootimg);
+                        }
+                } else {
+                        //Loop last frame
+                        unsigned int i = [arr count] - 1;
+                        while (getProcessId("SpringBoard") < 0) {
+                                CGImageRef bootimg = (__bridge CGImageRef)[arr objectAtIndex:i];
+                                CGContextDrawImage(c, CGRectMake(0, 0, screenWidth, screenHeight), bootimg);
+                        } //Springboard will kill us eventually...
+                }
+        }
+        return 0;
 }
 
 // vim:ft=objc

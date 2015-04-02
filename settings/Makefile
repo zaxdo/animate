@@ -9,7 +9,7 @@ BootLogo_FILES = BootLogo.mm animationPreviewViewController.m
 BootLogo_INSTALL_PATH = /Library/PreferenceBundles
 BootLogo_FRAMEWORKS = UIKit Foundation CoreGraphics ImageIO
 BootLogo_PRIVATE_FRAMEWORKS = Preferences
-
+OBJCFLAGS += -fobjc-arc
 include $(THEOS_MAKE_PATH)/bundle.mk
 
 internal-stage::

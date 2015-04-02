@@ -3,7 +3,7 @@
  * Copyright (C) 2011 Chronic-Dev Team
  * Copyright (C) 2011 Nicolas Haunold
  * Copyright (C) 2011 Justin Williams
- * Copyright (C) 2011 Alex Mault 
+ * Copyright (C) 2011 Alex Mault
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,12 +30,12 @@
 NSInteger firstNumSort(id str1, id str2, void *context) {
     int num1 = [str1 integerValue];
     int num2 = [str2 integerValue];
-    
+
     if (num1 < num2)
         return NSOrderedAscending;
     else if (num1 > num2)
         return NSOrderedDescending;
-    
+
     return NSOrderedSame;
 }
 
@@ -47,57 +47,31 @@ NSInteger firstNumSort(id str1, id str2, void *context) {
         [self.view setBackgroundColor:[UIColor groupTableViewBackgroundColor]];
         currentFrame = 0;
         displayLayer = [self.view layer];
-        currentAnimation = [animation retain];
+        currentAnimation = animation;
         imagesArr = [[NSMutableArray alloc] init];
-        
-        
-        
-      //  if ([currentAnimation isEqualToString:@"apple"] || currentAnimation == nil || (![currentAnimation isEqualToString:@"default"] && ![[NSFileManager defaultManager] fileExistsAtPath:[NSString stringWithFormat:@"/Library/BootLogos/%@/0.png", currentAnimation]])) {
-           // return 0; //Exit and display nothing
-       /* } else if ([currentAnimation isEqualToString:@"default"]) {
-            anim_sequence *sp = seq;
-            while (sp->data != NULL) {
-                CGDataProviderRef dpr = CGDataProviderCreateWithData(NULL, sp->data, sp->size, NULL);
-                CGImageRef img = CGImageCreateWithPNGDataProvider(dpr, NULL, true, kCGRenderingIntentDefault);
-                [arr addObject:(id)img];
-                CGDataProviderRelease(dpr);
-                sp++;
-            }
-        */
-      //  } else { //Preload other iamges
-            NSArray *dirContents = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:[NSString stringWithFormat:@"/Library/BootLogos/%@/", currentAnimation] error:nil];
-            NSArray *onlyPNGs = [dirContents filteredArrayUsingPredicate:[NSPredicate predicateWithFormat:@"self ENDSWITH '.png'"]];
-            onlyPNGs = [onlyPNGs sortedArrayUsingFunction:firstNumSort context:NULL];
-            unsigned int j = 0;
-            for (j = 0; j < [onlyPNGs count]; j++) {
-                CGDataProviderRef dpr = CGDataProviderCreateWithFilename([[NSString stringWithFormat:@"/Library/BootLogos/%@/%@", currentAnimation, [onlyPNGs objectAtIndex:j]] UTF8String]);
-                CGImageRef img = CGImageCreateWithPNGDataProvider(dpr, NULL, true, kCGRenderingIntentDefault);
-                
-                [imagesArr addObject:(id)img];
-                CGDataProviderRelease(dpr);
-                
-                UIBarButtonItem *button = [[UIBarButtonItem alloc] initWithTitle:@"restart" style:UIBarButtonItemStylePlain target:self action:@selector(beginAnimation)];
-                
-                self.navigationItem.rightBarButtonItem = button;
-            }
-        //}
+        NSArray *dirContents = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:[NSString stringWithFormat:@"/Library/BootLogos/%@/", currentAnimation] error:nil];
+        NSArray *onlyPNGs = [dirContents filteredArrayUsingPredicate:[NSPredicate predicateWithFormat:@"self ENDSWITH '.png'"]];
+        onlyPNGs = [onlyPNGs sortedArrayUsingFunction:firstNumSort context:NULL];
+        unsigned int j = 0;
+        for (j = 0; j < [onlyPNGs count]; j++) {
+            CGDataProviderRef dpr = CGDataProviderCreateWithFilename([[NSString stringWithFormat:@"/Library/BootLogos/%@/%@", currentAnimation, [onlyPNGs objectAtIndex:j]] UTF8String]);
+            CGImageRef img = CGImageCreateWithPNGDataProvider(dpr, NULL, true, kCGRenderingIntentDefault);
 
-        
+            [imagesArr addObject:CFBridgingRelease(img)];
+            CGDataProviderRelease(dpr);
+
+            UIBarButtonItem *button = [[UIBarButtonItem alloc] initWithTitle:@"restart" style:UIBarButtonItemStylePlain target:self action:@selector(beginAnimation)];
+
+            self.navigationItem.rightBarButtonItem = button;
+        }
+
     }
     return self;
 }
 
-- (void)dealloc
-{
-    [super dealloc];
-    [currentAnimation release];
-    if(animationTimer)
-        [animationTimer release];
-    [imagesArr release];
-    
-}
 
-//Our title... 
+
+//Our title...
 - (NSString*) title {
     return @"Preview";
 }
@@ -106,7 +80,7 @@ NSInteger firstNumSort(id str1, id str2, void *context) {
 {
     // Releases the view if it doesn't have a superview.
     [super didReceiveMemoryWarning];
-    
+
     // Release any cached data, images, etc that aren't in use.
 }
 
@@ -129,7 +103,7 @@ NSInteger firstNumSort(id str1, id str2, void *context) {
 
 -(void)viewDidAppear:(BOOL)animated{
     [self beginAnimation];
-    
+
 }
 
 -(void)beginAnimation{
@@ -147,11 +121,11 @@ NSInteger firstNumSort(id str1, id str2, void *context) {
    // just to make sure our timer doesn't mess anything up...
     if(currentFrame >= [imagesArr count])
         return;
-    
-    CGImageRef bootimg = (CGImageRef)[imagesArr objectAtIndex:currentFrame];
+
+    CGImageRef bootimg = (__bridge CGImageRef)[imagesArr objectAtIndex:currentFrame];
     //CGContextDrawImage(c, CGRectMake(0, 0, screenWidth, screenHeight), bootimg);
-    displayLayer.contents = (id)bootimg;
-    
+    displayLayer.contents = (__bridge id)bootimg;
+
     if(currentFrame < [imagesArr count]-1){
         currentFrame++;
     }else{
